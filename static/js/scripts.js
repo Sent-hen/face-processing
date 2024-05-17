@@ -30,76 +30,7 @@ function displayGallery(files) {
 function handleDragStart(event) {
     event.dataTransfer.setData('text/plain', event.target.dataset.src);
 }
-/*
-function renderCircle() {
-    let circleContainer = d3.select("#circleContainer");
-    let radius = 250;
-    let centerX = radius + 10;
-    let centerY = radius + 10;
 
-    circleContainer.selectAll("*").remove();  // Clear any existing elements
-
-    let svg = circleContainer.append("svg")
-        .attr("width", 2 * (radius + 10))
-        .attr("height", 2 * (radius + 10));
-
-    let circle = svg.append("circle")
-        .attr("cx", centerX)
-        .attr("cy", centerY)
-        .attr("r", radius)
-        .style("fill", "none")
-        .style("stroke", "#000");
-
-    svg.on("dragover", function (event) {
-        event.preventDefault();
-    });
-
-    svg.on("drop", function (event) {
-        event.preventDefault();
-        let src = event.dataTransfer.getData('text/plain');
-        let draggedVideo = document.querySelector(`video[data-src='${src}']`);
-        if (draggedVideo && !draggedVideo.classList.contains('used')) {
-            let angle = Math.atan2(event.offsetY - centerY, event.offsetX - centerX);
-            let x = centerX + (radius + 30) * Math.cos(angle); // Adjust distance from the circle
-            let y = centerY + (radius + 30) * Math.sin(angle); // Adjust distance from the circle
-
-            let video = document.createElementNS("http://www.w3.org/1999/xhtml", "video");
-            video.src = draggedVideo.src;
-            video.width = 50;
-            video.controls = true;
-            video.draggable = true;
-            video.autoplay = true;
-            video.loop = true;
-            video.addEventListener('dragstart', handleDragStart);
-
-            let foreignObject = svg.append("foreignObject")
-                .attr("x", x - 25)
-                .attr("y", y - 25)
-                .attr("width", 50)
-                .attr("height", 50)
-                .node();
-
-            foreignObject.appendChild(video);
-            draggedVideo.classList.add('used');  // Mark video as used
-
-            // Enable moving the video after placing it down
-            video.addEventListener('dragstart', function(event) {
-                event.preventDefault();
-            });
-
-            video.addEventListener('drag', function(event) {
-                let dx = event.clientX - event.target.clientWidth / 2;
-                let dy = event.clientY - event.target.clientHeight / 2;
-                event.target.style.transform = `translate(${dx}px, ${dy}px)`;
-            });
-
-            video.addEventListener('dragend', function(event) {
-                event.target.style.transform = '';
-            });
-        }
-    });
-}
-*/
 function renderCircle() {
     let circleContainer = d3.select("#circleContainer");
     let radius = 250;
@@ -111,8 +42,8 @@ function renderCircle() {
     circleContainer.selectAll("*").remove();
 
     let svg = circleContainer.append("svg")
-        .attr("width", containerWidth) // Set the width of the container
-        .attr("height", containerHeight); // Set the height of the container
+        .attr("width", containerWidth)
+        .attr("height", containerHeight);
 
     let circle = svg.append("circle")
         .attr("cx", centerX)
@@ -130,9 +61,8 @@ function renderCircle() {
         let src = event.dataTransfer.getData('text/plain');
         let draggedVideo = document.querySelector(`video[data-src='${src}']`);
         if (draggedVideo && !draggedVideo.classList.contains('used')) {
-            let angle = Math.atan2(event.offsetY - centerY, event.offsetX - centerX);
-            let x = centerX + (radius + 20) * Math.cos(angle); // Adjust distance from the circle
-            let y = centerY + (radius + 20) * Math.sin(angle); // Adjust distance from the circle
+            let x = event.offsetX - 25;
+            let y = event.offsetY - 25;
 
             let video = document.createElementNS("http://www.w3.org/1999/xhtml", "video");
             video.src = draggedVideo.src;
@@ -144,8 +74,8 @@ function renderCircle() {
             video.addEventListener('dragstart', handleDragStart);
 
             let foreignObject = svg.append("foreignObject")
-                .attr("x", x - 25)
-                .attr("y", y - 25)
+                .attr("x", x)
+                .attr("y", y)
                 .attr("width", 50)
                 .attr("height", 50)
                 .node();
@@ -174,13 +104,12 @@ function renderCircle() {
 document.getElementById('saveButton').addEventListener('click', function () {
     let locations = [];
     d3.selectAll("foreignObject").each(function () {
-        let angle = Math.atan2(this.y.baseVal.value + 25 - 260, this.x.baseVal.value + 25 - 260) * 180 / Math.PI;
-
-        // Convert negative angles to 0-360 range
-        angle = (angle + 360) % 360;
+        let x = this.x.baseVal.value + 25; // Adjust to center of the video
+        let y = this.y.baseVal.value + 25; // Adjust to center of the video
 
         locations.push({
-            angle: angle,
+            x: x,
+            y: y,
             src: this.firstChild.src
         });
     });
