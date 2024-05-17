@@ -1,0 +1,23 @@
+/* Save this as static/css/styles.css */
+body {
+    font-family: Arial, sans-serif;
+}
+
+#gallery {
+    float: left;
+    width: 200px;
+    height: 600px;
+    border: 1px solid #ccc;
+    overflow-y: scroll;
+}
+
+#circleContainer {
+    width: 600px;
+    height: 600px;
+    position: relative;
+    margin: 20px auto;
+}
+
+.used {
+    opacity: 0.5;
+}
