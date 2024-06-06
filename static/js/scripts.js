@@ -36,8 +36,8 @@ function renderCircle() {
     let radius = 250;
     let centerX = radius + 100;
     let centerY = radius + 100;
-    let containerWidth = 2 * (radius + 10) + 300;
-    let containerHeight = 2 * (radius + 10) + 300;
+    let containerWidth = 2 * (radius + 10) + 20000;
+    let containerHeight = 2 * (radius + 10) + 10000;
 
     circleContainer.selectAll("*").remove();
 
@@ -108,8 +108,8 @@ document.getElementById('saveButton').addEventListener('click', function () {
         let y = this.y.baseVal.value + 25;
 
         locations.push({
-            x: x,
-            y: y,
+            "initial x": x,
+            "initial y": y,
             src: this.firstChild.src
         });
     });
