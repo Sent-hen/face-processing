@@ -83,7 +83,7 @@ function renderCircle() {
             foreignObject.appendChild(video);
             draggedVideo.classList.add('used');  // Mark video as used
 
-            // Enable moving the video after placing it down
+ v
             video.addEventListener('dragstart', function(event) {
                 event.preventDefault();
             });
@@ -104,8 +104,8 @@ function renderCircle() {
 document.getElementById('saveButton').addEventListener('click', function () {
     let locations = [];
     d3.selectAll("foreignObject").each(function () {
-        let x = this.x.baseVal.value + 25; // Adjust to center of the video
-        let y = this.y.baseVal.value + 25; // Adjust to center of the video
+        let x = this.x.baseVal.value + 25;
+        let y = this.y.baseVal.value + 25;
 
         locations.push({
             x: x,
@@ -113,16 +113,19 @@ document.getElementById('saveButton').addEventListener('click', function () {
             src: this.firstChild.src
         });
     });
-    fetch('/save_locations', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(locations)
-    }).then(response => response.json())
-      .then(data => {
-          console.log(data.message);
-      });
+    let blob = new Blob([JSON.stringify(locations, null, 2)], { type: 'application/json' });
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = 'locations.json';
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 });
 
 document.addEventListener('DOMContentLoaded', renderCircle);
