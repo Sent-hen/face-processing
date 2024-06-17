@@ -27,6 +27,8 @@ function displayGallery(files) {
     });
 }
 
+let draggedVideos = []; // Array to keep track of added videos
+
 function handleDragStart(event) {
     event.dataTransfer.setData('text/plain', event.target.dataset.src);
 }
@@ -60,7 +62,7 @@ function renderCircle() {
         event.preventDefault();
         let src = event.dataTransfer.getData('text/plain');
         let draggedVideo = document.querySelector(`video[data-src='${src}']`);
-        if (draggedVideo && !draggedVideo.classList.contains('used')) {
+        if (draggedVideo) {
             let x = event.offsetX - 25;
             let y = event.offsetY - 25;
 
@@ -71,6 +73,7 @@ function renderCircle() {
             video.draggable = true;
             video.autoplay = true;
             video.loop = true;
+            video.dataset.src = src; // Set the data-src attribute for the new video element
             video.addEventListener('dragstart', handleDragStart);
 
             let foreignObject = svg.append("foreignObject")
@@ -78,28 +81,41 @@ function renderCircle() {
                 .attr("y", y)
                 .attr("width", 50)
                 .attr("height", 50)
-                .node();
+                .call(d3.drag()
+                    .on("drag", function (event) {
+                        d3.select(this)
+                            .attr("x", event.x - 25)
+                            .attr("y", event.y - 25);
+                    })
+                ).node();
 
             foreignObject.appendChild(video);
-            draggedVideo.classList.add('used');  // Mark video as used
-
- v
-            video.addEventListener('dragstart', function(event) {
-                event.preventDefault();
-            });
-
-            video.addEventListener('drag', function(event) {
-                let dx = event.clientX - event.target.clientWidth / 2;
-                let dy = event.clientY - event.target.clientHeight / 2;
-                event.target.style.transform = `translate(${dx}px, ${dy}px)`;
-            });
-
-            video.addEventListener('dragend', function(event) {
-                event.target.style.transform = '';
-            });
+            draggedVideos.push(foreignObject);
         }
     });
+
+
+    d3.selectAll("video")
+        .call(d3.drag()
+            .on("drag", function (event) {
+                let x = event.x - 25;
+                let y = event.y - 25;
+                d3.select(this.parentNode)
+                    .attr("x", x)
+                    .attr("y", y);
+            })
+        );
 }
+
+function undoLastVideo() {
+    if (draggedVideos.length > 0) {
+        let lastVideo = draggedVideos.pop();
+        lastVideo.remove();
+    }
+}
+
+document.getElementById("undo").addEventListener("click", undoLastVideo);
+
 
 document.getElementById('saveButton').addEventListener('click', function () {
     let locations = [];
@@ -118,7 +134,7 @@ document.getElementById('saveButton').addEventListener('click', function () {
 
     let a = document.createElement('a');
     a.href = url;
-    a.download = 'locations.json';
+    a.download = 'locationsAdmin.json';
 
     document.body.appendChild(a);
 
@@ -129,3 +145,30 @@ document.getElementById('saveButton').addEventListener('click', function () {
 });
 
 document.addEventListener('DOMContentLoaded', renderCircle);
+
+document.getElementById('saveButtonUser').addEventListener('click', function () {
+    let locations = [];
+    d3.selectAll("foreignObject").each(function () {
+        let x = this.x.baseVal.value + 25;
+        let y = this.y.baseVal.value + 25;
+
+        locations.push({
+            "final x": x,
+            "final y": y,
+            src: this.firstChild.src
+        });
+    });
+    let blob = new Blob([JSON.stringify(locations, null, 2)], { type: 'application/json' });
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = 'locationsUser.json';
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+});

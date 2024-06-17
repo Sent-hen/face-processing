@@ -12,6 +12,14 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 def index():
     return render_template('index.html')
 
+@app.route('/admin')
+def admin():
+    return render_template('admin.html')
+
+@app.route('/user')
+def user():
+    return render_template('user.html')
+
 @app.route('/upload', methods=['POST'])
 def upload():
     files = request.files.getlist('files[]')

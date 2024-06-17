@@ -1,20 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Arrangement Task</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
 </head>
 <body>
-    <h1>Behavioral Arrangement Task</h1>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" name="files[]" multiple>
-        <button type="submit">Upload</button>
-        <button id="undo">undo</button>
-    </form>
-    <div id="gallery"></div>
-    <div id="circleContainer"></div>
-    <button id="saveButton">Save Locations</button>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <h1>Welcome to the Home Page</h1>
+    <p><a href="{{ url_for('admin') }}">Admin Page</a></p>
+    <p><a href="{{ url_for('user') }}">User Page</a></p>
 </body>
 </html>
