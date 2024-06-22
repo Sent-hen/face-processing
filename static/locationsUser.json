@@ -1,32 +1,17 @@
 [
   {
-    "final x": 338,
-    "final y": 77,
-    "src": "http://127.0.0.1:5000/uploads/Circle_Cut_x264.mp4"
-  },
-  {
-    "final x": 30,
-    "final y": 312,
-    "src": "http://127.0.0.1:5000/uploads/Ramdom_Lines_x264.mp4"
-  },
-  {
-    "final x": 622,
-    "final y": 296,
+    "initial x": 272,
+    "initial y": 95,
     "src": "http://127.0.0.1:5000/uploads/banana.mp4"
   },
   {
-    "final x": 363,
-    "final y": 102,
-    "src": "http://127.0.0.1:5000/uploads/Circle_Cut_x264.mp4"
-  },
-  {
-    "final x": 55,
-    "final y": 337,
+    "initial x": 192,
+    "initial y": 95,
     "src": "http://127.0.0.1:5000/uploads/Ramdom_Lines_x264.mp4"
   },
   {
-    "final x": 647,
-    "final y": 321,
-    "src": "http://127.0.0.1:5000/uploads/banana.mp4"
+    "initial x": 153,
+    "initial y": 146,
+    "src": "http://127.0.0.1:5000/uploads/Circle_Cut_x264.mp4"
   }
 ]

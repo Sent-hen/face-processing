@@ -1,23 +1,57 @@
 /* Save this as static/css/styles.css */
+
 body {
     font-family: Arial, sans-serif;
-}
-
-#gallery {
+  }
+  
+  #gallery {
     float: left;
     width: 200px;
     height: 600px;
     border: 1px solid #ccc;
     overflow-y: scroll;
-}
-
-#circleContainer {
+  }
+  
+  #circleContainer {
     width: 600px;
     height: 600px;
     position: relative;
     margin: 20px auto;
-}
-
-.used {
+  }
+  
+  .used {
     opacity: 0.5;
-}
+  }
+  
+  /* Style for the loading class */
+  .loading {
+    /* Add your desired loading indicator styles here */
+    background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent overlay */
+    position: relative; /* Allows positioning of the spinner within the button */
+  }
+  
+  /* Example spinner styling (adjust as needed) */
+  .loading::after {
+    content: "";
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 5px solid #fff; /* White spinner */
+    border-top-color: #000; /* Black color for the top segment (animation trick) */
+    animation: spin 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  

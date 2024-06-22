@@ -11,51 +11,23 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
       });
 });
 
-document.getElementById('uploadPreloadedLocations').addEventListener('click', function () {
-    document.getElementById('locationFileInput').click();
+document.getElementById('saveFinalLocations').addEventListener('click', function (event) {
+    saveLocations('locationsUser.json');
 });
 
-document.getElementById('locationFileInput').addEventListener('change', function (event) {
-    let file = event.target.files[0];
-    if (file) {
-        let reader = new FileReader();
-        reader.onload = function (e) {
-            let data = JSON.parse(e.target.result);
-            data.forEach(item => {
-                let video = document.querySelector(`video[data-src='${item.src.split('/').pop()}']`);
-                if (video) {
-                    let foreignObject = d3.select("#circleContainer svg")
-                        .append("foreignObject")
-                        .attr("x", item["initial x"])
-                        .attr("y", item["initial y"])
-                        .attr("width", 50)
-                        .attr("height", 50)
-                        .call(d3.drag()
-                            .on("drag", function (event) {
-                                d3.select(this)
-                                    .attr("x", event.x - 25)
-                                    .attr("y", event.y - 25);
-                            })
-                        ).node();
-
-                    foreignObject.appendChild(video.cloneNode(true));
-                    draggedVideos.push(foreignObject);
-                }
-            });
-        };
-        reader.readAsText(file);
-    }
+document.getElementById('saveButton').addEventListener('click', function () {
+    saveLocations('locationsAdmin.json');
 });
 
-document.getElementById('saveFinalLocations').addEventListener('click', function () {
+function saveLocations(filename) {
     let locations = [];
     d3.selectAll("foreignObject").each(function () {
         let x = this.x.baseVal.value + 25;
         let y = this.y.baseVal.value + 25;
 
         locations.push({
-            "final x": x,
-            "final y": y,
+            "initial x": x,
+            "initial y": y,
             src: this.firstChild.src
         });
     });
@@ -64,7 +36,7 @@ document.getElementById('saveFinalLocations').addEventListener('click', function
 
     let a = document.createElement('a');
     a.href = url;
-    a.download = 'locationsUser.json';
+    a.download = filename;
 
     document.body.appendChild(a);
 
@@ -72,10 +44,11 @@ document.getElementById('saveFinalLocations').addEventListener('click', function
 
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-});
+}
 
 function displayGallery(files) {
     let gallery = document.getElementById('gallery');
+    gallery.innerHTML = '';  // Clear existing gallery
     files.forEach(file => {
         let video = document.createElement('video');
         video.src = '/uploads/' + file;
@@ -90,7 +63,7 @@ function displayGallery(files) {
     });
 }
 
-let draggedVideos = []; // Array to keep track of added videos
+let draggedVideos = []; 
 
 function handleDragStart(event) {
     event.dataTransfer.setData('text/plain', event.target.dataset.src);
@@ -153,56 +126,79 @@ function renderCircle() {
                 ).node();
 
             foreignObject.appendChild(video);
+
+            // Remove the original video element from the gallery
+            draggedVideo.remove();
+
             draggedVideos.push(foreignObject);
         }
     });
 
-    d3.selectAll("video")
+    d3.selectAll("foreignObject")
         .call(d3.drag()
             .on("drag", function (event) {
                 let x = event.x - 25;
                 let y = event.y - 25;
-                d3.select(this.parentNode)
+                d3.select(this)
                     .attr("x", x)
                     .attr("y", y);
             })
         );
 }
 
-function undoLastVideo() {
-    if (draggedVideos.length > 0) {
-        let lastVideo = draggedVideos.pop();
-        lastVideo.remove();
-    }
+function placeSavedVideos(savedLocations) {
+    let svg = d3.select("svg");
+    savedLocations.forEach(location => {
+        let video = document.createElementNS("http://www.w3.org/1999/xhtml", "video");
+        video.src = location.src;
+        video.width = 50;
+        video.controls = true;
+        video.draggable = true;
+        video.autoplay = true;
+        video.loop = true;
+        video.dataset.src = location.src; 
+        video.addEventListener('dragstart', handleDragStart);
+
+        let foreignObject = svg.append("foreignObject")
+            .attr("x", location["initial x"] - 25)
+            .attr("y", location["initial y"] - 25)
+            .attr("width", 50)
+            .attr("height", 50)
+            .call(d3.drag()
+                .on("drag", function (event) {
+                    d3.select(this)
+                        .attr("x", event.x - 25)
+                        .attr("y", event.y - 25);
+                })
+            ).node();
+
+        foreignObject.appendChild(video);
+
+        draggedVideos.push(foreignObject);
+    });
 }
 
-document.getElementById("undo").addEventListener("click", undoLastVideo);
+function loadSavedLocationsFromFile() {
+    let fileInput = document.getElementById('locationFileInput');
 
-document.getElementById('saveButton').addEventListener('click', function () {
-    let locations = [];
-    d3.selectAll("foreignObject").each(function () {
-        let x = this.x.baseVal.value + 25;
-        let y = this.y.baseVal.value + 25;
+    fileInput.addEventListener('change', function () {
+        let file = fileInput.files[0];
+        let reader = new FileReader();
 
-        locations.push({
-            "initial x": x,
-            "initial y": y,
-            src: this.firstChild.src
-        });
+        reader.onload = function (event) {
+            try {
+                let savedLocations = JSON.parse(event.target.result);
+                placeSavedVideos(savedLocations);
+            } catch (error) {
+                console.error('Error parsing saved locations:', error);
+            }
+        };
+
+        reader.readAsText(file);
     });
-    let blob = new Blob([JSON.stringify(locations, null, 2)], { type: 'application/json' });
-    let url = URL.createObjectURL(blob);
+}
 
-    let a = document.createElement('a');
-    a.href = url;
-    a.download = 'locationsAdmin.json';
-
-    document.body.appendChild(a);
-
-    a.click();
-
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+document.addEventListener('DOMContentLoaded', function () {
+    renderCircle();
+    loadSavedLocationsFromFile();
 });
-
-document.addEventListener('DOMContentLoaded', renderCircle);
