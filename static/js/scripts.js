@@ -11,6 +11,69 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
       });
 });
 
+document.getElementById('uploadPreloadedLocations').addEventListener('click', function () {
+    document.getElementById('locationFileInput').click();
+});
+
+document.getElementById('locationFileInput').addEventListener('change', function (event) {
+    let file = event.target.files[0];
+    if (file) {
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            let data = JSON.parse(e.target.result);
+            data.forEach(item => {
+                let video = document.querySelector(`video[data-src='${item.src.split('/').pop()}']`);
+                if (video) {
+                    let foreignObject = d3.select("#circleContainer svg")
+                        .append("foreignObject")
+                        .attr("x", item["initial x"])
+                        .attr("y", item["initial y"])
+                        .attr("width", 50)
+                        .attr("height", 50)
+                        .call(d3.drag()
+                            .on("drag", function (event) {
+                                d3.select(this)
+                                    .attr("x", event.x - 25)
+                                    .attr("y", event.y - 25);
+                            })
+                        ).node();
+
+                    foreignObject.appendChild(video.cloneNode(true));
+                    draggedVideos.push(foreignObject);
+                }
+            });
+        };
+        reader.readAsText(file);
+    }
+});
+
+document.getElementById('saveFinalLocations').addEventListener('click', function () {
+    let locations = [];
+    d3.selectAll("foreignObject").each(function () {
+        let x = this.x.baseVal.value + 25;
+        let y = this.y.baseVal.value + 25;
+
+        locations.push({
+            "final x": x,
+            "final y": y,
+            src: this.firstChild.src
+        });
+    });
+    let blob = new Blob([JSON.stringify(locations, null, 2)], { type: 'application/json' });
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = 'locationsUser.json';
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+});
+
 function displayGallery(files) {
     let gallery = document.getElementById('gallery');
     files.forEach(file => {
@@ -38,8 +101,8 @@ function renderCircle() {
     let radius = 250;
     let centerX = radius + 100;
     let centerY = radius + 100;
-    let containerWidth = 2 * (radius + 10) + 20000;
-    let containerHeight = 2 * (radius + 10) + 10000;
+    let containerWidth = 2 * (radius + 10) + 200;
+    let containerHeight = 2 * (radius + 10) + 200;
 
     circleContainer.selectAll("*").remove();
 
@@ -94,7 +157,6 @@ function renderCircle() {
         }
     });
 
-
     d3.selectAll("video")
         .call(d3.drag()
             .on("drag", function (event) {
@@ -115,7 +177,6 @@ function undoLastVideo() {
 }
 
 document.getElementById("undo").addEventListener("click", undoLastVideo);
-
 
 document.getElementById('saveButton').addEventListener('click', function () {
     let locations = [];
@@ -145,30 +206,3 @@ document.getElementById('saveButton').addEventListener('click', function () {
 });
 
 document.addEventListener('DOMContentLoaded', renderCircle);
-
-document.getElementById('saveButtonUser').addEventListener('click', function () {
-    let locations = [];
-    d3.selectAll("foreignObject").each(function () {
-        let x = this.x.baseVal.value + 25;
-        let y = this.y.baseVal.value + 25;
-
-        locations.push({
-            "final x": x,
-            "final y": y,
-            src: this.firstChild.src
-        });
-    });
-    let blob = new Blob([JSON.stringify(locations, null, 2)], { type: 'application/json' });
-    let url = URL.createObjectURL(blob);
-
-    let a = document.createElement('a');
-    a.href = url;
-    a.download = 'locationsUser.json';
-
-    document.body.appendChild(a);
-
-    a.click();
-
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-});
