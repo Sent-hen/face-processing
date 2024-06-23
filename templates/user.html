@@ -9,13 +9,11 @@
     <form id="uploadForm" enctype="multipart/form-data">
         <input type="file" name="files[]" multiple>
         <button type="submit">Upload</button>
-        <button id="undo">undo</button>
     </form>
     <div id="gallery"></div>
     <div id="circleContainer"></div>
     <input type="file" id="locationFileInput">
-    <button id="saveFinalLocations">S</button>
-    <button id="saveButtonfinal">Save Final Locations</button>
+    <button id="saveFinalLocations">Save Final Locations</button>
     <button id="saveButton">Save Initial Locations</button>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>

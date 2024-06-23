@@ -12,10 +12,10 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
 });
 
 document.getElementById('saveFinalLocations').addEventListener('click', function (event) {
-    saveLocations('locationsUser.json');
+    savefinalLocations('locationsUser.json');
 });
 
-document.getElementById('saveButton').addEventListener('click', function () {
+document.getElementById('saveButton').addEventListener('click', function (event) {
     saveLocations('locationsAdmin.json');
 });
 
@@ -28,6 +28,33 @@ function saveLocations(filename) {
         locations.push({
             "initial x": x,
             "initial y": y,
+            src: this.firstChild.src
+        });
+    });
+    let blob = new Blob([JSON.stringify(locations, null, 2)], { type: 'application/json' });
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function savefinalLocations(filename) {
+    let locations = [];
+    d3.selectAll("foreignObject").each(function () {
+        let x = this.x.baseVal.value + 25;
+        let y = this.y.baseVal.value + 25;
+
+        locations.push({
+            "final x": x,
+            "final y": y,
             src: this.firstChild.src
         });
     });

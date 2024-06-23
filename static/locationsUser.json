@@ -1,17 +1,17 @@
 [
   {
-    "initial x": 272,
-    "initial y": 95,
+    "initial x": 309,
+    "initial y": 78,
     "src": "http://127.0.0.1:5000/uploads/banana.mp4"
   },
   {
-    "initial x": 192,
-    "initial y": 95,
-    "src": "http://127.0.0.1:5000/uploads/Ramdom_Lines_x264.mp4"
+    "initial x": 56,
+    "initial y": 335,
+    "src": "http://127.0.0.1:5000/uploads/Circle_Cut_x264.mp4"
   },
   {
-    "initial x": 153,
-    "initial y": 146,
-    "src": "http://127.0.0.1:5000/uploads/Circle_Cut_x264.mp4"
+    "initial x": 627,
+    "initial y": 171,
+    "src": "http://127.0.0.1:5000/uploads/Ramdom_Lines_x264.mp4"
   }
 ]
