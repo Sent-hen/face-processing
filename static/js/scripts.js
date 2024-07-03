@@ -19,6 +19,16 @@ document.getElementById('saveButton').addEventListener('click', function (event)
     saveLocations('locationsAdmin.json');
 });
 
+document.getElementById('setCoordinates').addEventListener('click', function () {
+    let x = parseInt(document.getElementById('xCoord').value);
+    let y = parseInt(document.getElementById('yCoord').value);
+    if (!isNaN(x) && !isNaN(y)) {
+        setCoordinatesForSelectedVideo(x, y);
+    }
+});
+
+let selectedVideo = null;
+
 function saveLocations(filename) {
     let locations = [];
     d3.selectAll("foreignObject").each(function () {
@@ -31,7 +41,9 @@ function saveLocations(filename) {
             src: this.firstChild.src
         });
     });
-    let blob = new Blob([JSON.stringify(locations, null, 2)], { type: 'application/json' });
+    let questionText = document.getElementById('question').innerText;
+    let dataToSave = { locations, question: questionText };
+    let blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
     let url = URL.createObjectURL(blob);
 
     let a = document.createElement('a');
@@ -58,7 +70,9 @@ function savefinalLocations(filename) {
             src: this.firstChild.src
         });
     });
-    let blob = new Blob([JSON.stringify(locations, null, 2)], { type: 'application/json' });
+    let questionText = document.getElementById('question').innerText;
+    let dataToSave = { locations, question: questionText };
+    let blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
     let url = URL.createObjectURL(blob);
 
     let a = document.createElement('a');
@@ -86,8 +100,26 @@ function displayGallery(files) {
         video.autoplay = true;
         video.loop = true;
         video.addEventListener('dragstart', handleDragStart);
+        video.addEventListener('click', handleVideoClick);
         gallery.appendChild(video);
     });
+}
+
+function handleVideoClick(event) {
+    selectedVideo = event.target;
+    document.getElementById('coordinateInput').style.display = 'block';
+    document.getElementById('xCoord').value = selectedVideo.parentElement.x.baseVal.value;
+    document.getElementById('yCoord').value = selectedVideo.parentElement.y.baseVal.value;
+}
+
+function setCoordinatesForSelectedVideo(x, y) {
+    if (selectedVideo) {
+        d3.select(selectedVideo.parentElement)
+            .attr("x", x)
+            .attr("y", y);
+        document.getElementById('coordinateInput').style.display = 'none';
+        selectedVideo = null;
+    }
 }
 
 let draggedVideos = []; 
@@ -138,6 +170,7 @@ function renderCircle() {
             video.loop = true;
             video.dataset.src = src; // Set the data-src attribute for the new video element
             video.addEventListener('dragstart', handleDragStart);
+            video.addEventListener('click', handleVideoClick);
 
             let foreignObject = svg.append("foreignObject")
                 .attr("x", x)
@@ -173,9 +206,9 @@ function renderCircle() {
         );
 }
 
-function placeSavedVideos(savedLocations) {
+function placeSavedVideos(savedData) {
     let svg = d3.select("svg");
-    savedLocations.forEach(location => {
+    savedData.locations.forEach(location => {
         let video = document.createElementNS("http://www.w3.org/1999/xhtml", "video");
         video.src = location.src;
         video.width = 50;
@@ -185,6 +218,7 @@ function placeSavedVideos(savedLocations) {
         video.loop = true;
         video.dataset.src = location.src; 
         video.addEventListener('dragstart', handleDragStart);
+        video.addEventListener('click', handleVideoClick);
 
         let foreignObject = svg.append("foreignObject")
             .attr("x", location["initial x"] - 25)
@@ -203,6 +237,8 @@ function placeSavedVideos(savedLocations) {
 
         draggedVideos.push(foreignObject);
     });
+
+    document.getElementById('question').innerText = savedData.question;
 }
 
 function loadSavedLocationsFromFile() {
@@ -214,8 +250,8 @@ function loadSavedLocationsFromFile() {
 
         reader.onload = function (event) {
             try {
-                let savedLocations = JSON.parse(event.target.result);
-                placeSavedVideos(savedLocations);
+                let savedData = JSON.parse(event.target.result);
+                placeSavedVideos(savedData);
             } catch (error) {
                 console.error('Error parsing saved locations:', error);
             }
