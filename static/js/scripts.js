@@ -11,33 +11,25 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
       });
 });
 
-document.getElementById('saveFinalLocations').addEventListener('click', function (event) {
-    savefinalLocations('locationsUser.json');
+document.getElementById('saveFinalLocations').addEventListener('click', function () {
+    saveLocations('locationsUser.json', 'final x', 'final y');
 });
 
-document.getElementById('saveButton').addEventListener('click', function (event) {
-    saveLocations('locationsAdmin.json');
-});
-
-document.getElementById('setCoordinates').addEventListener('click', function () {
-    let x = parseInt(document.getElementById('xCoord').value);
-    let y = parseInt(document.getElementById('yCoord').value);
-    if (!isNaN(x) && !isNaN(y)) {
-        setCoordinatesForSelectedVideo(x, y);
-    }
+document.getElementById('saveButton').addEventListener('click', function () {
+    saveLocations('locationsAdmin.json', 'initial x', 'initial y');
 });
 
 let selectedVideo = null;
 
-function saveLocations(filename) {
+function saveLocations(filename, xLabel, yLabel) {
     let locations = [];
     d3.selectAll("foreignObject").each(function () {
         let x = this.x.baseVal.value + 25;
         let y = this.y.baseVal.value + 25;
 
         locations.push({
-            "initial x": x,
-            "initial y": y,
+            [xLabel]: x,
+            [yLabel]: y,
             src: this.firstChild.src
         });
     });
@@ -51,45 +43,14 @@ function saveLocations(filename) {
     a.download = filename;
 
     document.body.appendChild(a);
-
     a.click();
-
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-function savefinalLocations(filename) {
-    let locations = [];
-    d3.selectAll("foreignObject").each(function () {
-        let x = this.x.baseVal.value + 25;
-        let y = this.y.baseVal.value + 25;
-
-        locations.push({
-            "final x": x,
-            "final y": y,
-            src: this.firstChild.src
-        });
-    });
-    let questionText = document.getElementById('question').innerText;
-    let dataToSave = { locations, question: questionText };
-    let blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
-    let url = URL.createObjectURL(blob);
-
-    let a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-
-    document.body.appendChild(a);
-
-    a.click();
-
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
 
 function displayGallery(files) {
     let gallery = document.getElementById('gallery');
-    gallery.innerHTML = '';  // Clear existing gallery
+    gallery.innerHTML = '';
     files.forEach(file => {
         let video = document.createElement('video');
         video.src = '/uploads/' + file;
@@ -103,6 +64,8 @@ function displayGallery(files) {
         video.addEventListener('click', handleVideoClick);
         gallery.appendChild(video);
     });
+
+    updateCoordinatesBlock();
 }
 
 function handleVideoClick(event) {
@@ -119,10 +82,9 @@ function setCoordinatesForSelectedVideo(x, y) {
             .attr("y", y);
         document.getElementById('coordinateInput').style.display = 'none';
         selectedVideo = null;
+        updateCoordinatesBlock();
     }
 }
-
-let draggedVideos = []; 
 
 function handleDragStart(event) {
     event.dataTransfer.setData('text/plain', event.target.dataset.src);
@@ -142,7 +104,7 @@ function renderCircle() {
         .attr("width", containerWidth)
         .attr("height", containerHeight);
 
-    let circle = svg.append("circle")
+    svg.append("circle")
         .attr("cx", centerX)
         .attr("cy", centerY)
         .attr("r", radius)
@@ -168,7 +130,7 @@ function renderCircle() {
             video.draggable = true;
             video.autoplay = true;
             video.loop = true;
-            video.dataset.src = src; // Set the data-src attribute for the new video element
+            video.dataset.src = src;
             video.addEventListener('dragstart', handleDragStart);
             video.addEventListener('click', handleVideoClick);
 
@@ -186,24 +148,68 @@ function renderCircle() {
                 ).node();
 
             foreignObject.appendChild(video);
-
-            // Remove the original video element from the gallery
             draggedVideo.remove();
-
-            draggedVideos.push(foreignObject);
+            updateCoordinatesBlock();
         }
     });
+}
 
-    d3.selectAll("foreignObject")
-        .call(d3.drag()
-            .on("drag", function (event) {
-                let x = event.x - 25;
-                let y = event.y - 25;
-                d3.select(this)
-                    .attr("x", x)
-                    .attr("y", y);
-            })
-        );
+function updateCoordinatesBlock() {
+    let coordinatesBlock = document.getElementById('coordinatesBlock');
+    coordinatesBlock.innerHTML = '';
+
+    d3.selectAll("foreignObject").each(function () {
+        let x = this.x.baseVal.value + 25;
+        let y = this.y.baseVal.value + 25;
+        let src = this.firstChild.src;
+
+        let div = document.createElement('div');
+        div.className = 'coordinate-item';
+
+        let video = document.createElement('video');
+        video.src = src;
+        video.width = 50;
+        video.controls = true;
+        video.autoplay = true;
+        video.loop = true;
+        div.appendChild(video);
+
+        let xLabel = document.createElement('label');
+        xLabel.innerText = 'X:';
+        div.appendChild(xLabel);
+
+        let xInput = document.createElement('input');
+        xInput.type = 'number';
+        xInput.value = x;
+        xInput.addEventListener('change', function () {
+            setCoordinatesForVideo(src, xInput.value, yInput.value);
+        });
+        div.appendChild(xInput);
+
+        let yLabel = document.createElement('label');
+        yLabel.innerText = 'Y:';
+        div.appendChild(yLabel);
+
+        let yInput = document.createElement('input');
+        yInput.type = 'number';
+        yInput.value = y;
+        yInput.addEventListener('change', function () {
+            setCoordinatesForVideo(src, xInput.value, yInput.value);
+        });
+        div.appendChild(yInput);
+
+        coordinatesBlock.appendChild(div);
+    });
+}
+
+function setCoordinatesForVideo(src, x, y) {
+    d3.selectAll("foreignObject").each(function () {
+        if (this.firstChild.src === src) {
+            d3.select(this)
+                .attr("x", x - 25)
+                .attr("y", y - 25);
+        }
+    });
 }
 
 function placeSavedVideos(savedData) {
@@ -216,7 +222,7 @@ function placeSavedVideos(savedData) {
         video.draggable = true;
         video.autoplay = true;
         video.loop = true;
-        video.dataset.src = location.src; 
+        video.dataset.src = location.src;
         video.addEventListener('dragstart', handleDragStart);
         video.addEventListener('click', handleVideoClick);
 
@@ -234,16 +240,14 @@ function placeSavedVideos(savedData) {
             ).node();
 
         foreignObject.appendChild(video);
-
-        draggedVideos.push(foreignObject);
     });
 
     document.getElementById('question').innerText = savedData.question;
+    updateCoordinatesBlock();
 }
 
 function loadSavedLocationsFromFile() {
     let fileInput = document.getElementById('locationFileInput');
-
     fileInput.addEventListener('change', function () {
         let file = fileInput.files[0];
         let reader = new FileReader();
