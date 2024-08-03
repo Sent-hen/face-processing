@@ -12,16 +12,18 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
 });
 
 document.getElementById('saveFinalLocations').addEventListener('click', function () {
-    saveLocations('locationsUser.json', 'final x', 'final y');
+    // Save user locations
+    saveLocations('/save_user_locations', 'final_x', 'final_y');
 });
 
 document.getElementById('saveButton').addEventListener('click', function () {
-    saveLocations('locationsAdmin.json', 'initial x', 'initial y');
+    // Save admin locations
+    saveLocations('/save_admin_locations', 'initial_x', 'initial_y');
 });
 
 let selectedVideo = null;
 
-function saveLocations(filename, xLabel, yLabel) {
+function saveLocations(endpoint, xLabel, yLabel) {
     let locations = [];
     d3.selectAll("foreignObject").each(function () {
         let x = this.x.baseVal.value + 25;
@@ -33,19 +35,26 @@ function saveLocations(filename, xLabel, yLabel) {
             src: this.firstChild.src
         });
     });
+    
     let questionText = document.getElementById('question').innerText;
     let dataToSave = { locations, question: questionText };
-    let blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
-    let url = URL.createObjectURL(blob);
+    
+    console.log('Data to save:', dataToSave); // For debugging
 
-    let a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dataToSave)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
 }
 
 function displayGallery(files) {
@@ -214,6 +223,8 @@ function setCoordinatesForVideo(src, x, y) {
 
 function placeSavedVideos(savedData) {
     let svg = d3.select("svg");
+    svg.selectAll("*").remove(); // Clear previous content
+
     savedData.locations.forEach(location => {
         let video = document.createElementNS("http://www.w3.org/1999/xhtml", "video");
         video.src = location.src;
@@ -227,8 +238,8 @@ function placeSavedVideos(savedData) {
         video.addEventListener('click', handleVideoClick);
 
         let foreignObject = svg.append("foreignObject")
-            .attr("x", location["initial x"] - 25)
-            .attr("y", location["initial y"] - 25)
+            .attr("x", location.initial_x - 25)  // Adjust the position based on video dimensions
+            .attr("y", location.initial_y - 25)  // Adjust the position based on video dimensions
             .attr("width", 50)
             .attr("height", 50)
             .call(d3.drag()
@@ -242,30 +253,22 @@ function placeSavedVideos(savedData) {
         foreignObject.appendChild(video);
     });
 
-    document.getElementById('question').innerText = savedData.question;
+    if (savedData.locations.length > 0) {
+        document.getElementById('question').innerText = savedData.locations[0].question;
+    }
     updateCoordinatesBlock();
 }
 
-function loadSavedLocationsFromFile() {
-    let fileInput = document.getElementById('locationFileInput');
-    fileInput.addEventListener('change', function () {
-        let file = fileInput.files[0];
-        let reader = new FileReader();
-
-        reader.onload = function (event) {
-            try {
-                let savedData = JSON.parse(event.target.result);
-                placeSavedVideos(savedData);
-            } catch (error) {
-                console.error('Error parsing saved locations:', error);
-            }
-        };
-
-        reader.readAsText(file);
-    });
+function loadSavedLocationsFromDatabase() {
+    fetch('/load_admin_locations')
+        .then(response => response.json())
+        .then(data => {
+            placeSavedVideos(data);
+        })
+        .catch(error => console.error('Error loading saved locations:', error));
 }
 
 document.addEventListener('DOMContentLoaded', function () {
     renderCircle();
-    loadSavedLocationsFromFile();
+    loadSavedLocationsFromDatabase();
 });
