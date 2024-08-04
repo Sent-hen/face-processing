@@ -102,20 +102,26 @@ function handleDragStart(event) {
 function renderCircle() {
     let circleContainer = d3.select("#circleContainer");
     let radius = 250;
-    let centerX = radius + 100;
-    let centerY = radius + 100;
-    let containerWidth = 2 * (radius + 10) + 200;
-    let containerHeight = 2 * (radius + 10) + 200;
+    let padding = 50; 
+    let centerX = circleContainer.node().clientWidth / 2; 
+    let centerY = circleContainer.node().clientHeight / 2; 
 
-    circleContainer.selectAll("*").remove();
+    
+    let containerWidth = 2 * (radius + padding);
+    let containerHeight = 2 * (radius + padding);
+
+    //circleContainer.selectAll("*").remove(); 
 
     let svg = circleContainer.append("svg")
         .attr("width", containerWidth)
-        .attr("height", containerHeight);
+        .attr("height", containerHeight)
+        .style("position", "absolute") 
+        .style("top", 0)
+        .style("left", 0);
 
     svg.append("circle")
-        .attr("cx", centerX)
-        .attr("cy", centerY)
+        .attr("cx", containerWidth / 2)
+        .attr("cy", containerHeight / 2)
         .attr("r", radius)
         .style("fill", "none")
         .style("stroke", "#000");
@@ -162,6 +168,7 @@ function renderCircle() {
         }
     });
 }
+
 
 function updateCoordinatesBlock() {
     let coordinatesBlock = document.getElementById('coordinatesBlock');
@@ -223,7 +230,7 @@ function setCoordinatesForVideo(src, x, y) {
 
 function placeSavedVideos(savedData) {
     let svg = d3.select("svg");
-    svg.selectAll("*").remove(); // Clear previous content
+    // svg.selectAll("*").remove(); // Clear previous content
 
     savedData.locations.forEach(location => {
         let video = document.createElementNS("http://www.w3.org/1999/xhtml", "video");
@@ -269,6 +276,6 @@ function loadSavedLocationsFromDatabase() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    renderCircle();
-    loadSavedLocationsFromDatabase();
+     loadSavedLocationsFromDatabase();
+     //renderCircle();
 });

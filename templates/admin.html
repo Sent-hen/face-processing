@@ -11,16 +11,19 @@
             position: relative;
         }
         svg {
-            width: 600px;
-            height: 600px;
+            width: 100%;
+            height: 100%;
             position: absolute;
             top: 0;
-            left: 0;
-            z-index: 10;
+            left: 100;
         }
         circle {
             fill: none;
             stroke: #000;
+            stroke-width: 2;
+        }
+        #circleSvg {
+            display: block;
         }
     </style>
 </head>
@@ -30,11 +33,9 @@
         <input type="file" name="files[]" multiple>
         <button type="submit">Upload</button>
     </form>
+    
     <div id="gallery"></div>
     <div id="circleContainer">
-        <svg id="circleSvg">
-            <circle cx="300" cy="300" r="250"></circle>
-        </svg>
     </div>
     <input type="file" id="locationFileInput">
     <button id="saveFinalLocations">Save Final Locations</button>
@@ -50,15 +51,9 @@
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const circleContainer = document.getElementById('circleContainer');
-            const circleSvg = document.getElementById('circleSvg');
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    console.log(mutation);
-                });
-            });
-            observer.observe(circleContainer, { attributes: true, childList: true, subtree: true });
+        document.addEventListener('DOMContentLoaded', function () {
+            renderCircle(); // Call renderCircle to ensure the circle is drawn
+            loadSavedLocationsFromDatabase(); // Load saved locations
         });
     </script>
 </body>

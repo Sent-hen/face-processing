@@ -4,7 +4,7 @@
     <title>User</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
     <style>
-        #uploadForm, #gallery, #saveButton {
+        #uploadForm, #gallery, #saveButton, #locationFileInput, #coordinateInput, #coordinatesBlock {
             display: none;
         }
         #circleContainer {
@@ -65,7 +65,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             renderCircle();
-            // loadSavedLocationsFromDatabase(); // Uncomment if needed for your functionality
+            loadSavedLocationsFromDatabase();
         });
     </script>
 </body>
