@@ -171,10 +171,10 @@ def save_user_locations():
         return redirect(url_for('login'))
     
     data = request.get_json()
-    print('Received data:', data)  
+    print('Received data:', data)
     user_id = session['user_id']
     
-    question = data.get('question') 
+    question = data.get('question')
 
     for loc in data['locations']:
         location = UserLocation(
@@ -186,7 +186,13 @@ def save_user_locations():
         )
         db.session.add(location)
     db.session.commit()
-    return jsonify({'message': 'User locations saved successfully'})
+
+    # Redirect to the end.html page after saving the data
+    return redirect(url_for('end'))
+
+@app.route('/end')
+def end():
+    return render_template('end.html')
 
 @app.route('/load_admin_locations')
 def load_admin_locations():

@@ -35,10 +35,10 @@ function saveLocations(endpoint, xLabel, yLabel) {
             src: this.firstChild.src
         });
     });
-    
+
     let questionText = document.getElementById('question').innerText;
     let dataToSave = { locations, question: questionText };
-    
+
     console.log('Data to save:', dataToSave); // For debugging
 
     fetch(endpoint, {
@@ -48,7 +48,14 @@ function saveLocations(endpoint, xLabel, yLabel) {
         },
         body: JSON.stringify(dataToSave)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.redirected) {
+            // Handle the redirection
+            window.location.href = response.url;
+        } else {
+            return response.json(); // Process JSON if there's no redirection
+        }
+    })
     .then(data => {
         console.log('Success:', data);
     })
@@ -56,6 +63,7 @@ function saveLocations(endpoint, xLabel, yLabel) {
         console.error('Error:', error);
     });
 }
+
 
 function displayGallery(files) {
     let gallery = document.getElementById('gallery');
@@ -99,6 +107,7 @@ function handleDragStart(event) {
     event.dataTransfer.setData('text/plain', event.target.dataset.src);
 }
 
+
 function renderCircle() {
     let circleContainer = d3.select("#circleContainer");
     let radius = 250;
@@ -106,11 +115,8 @@ function renderCircle() {
     let centerX = circleContainer.node().clientWidth / 2; 
     let centerY = circleContainer.node().clientHeight / 2; 
 
-    
     let containerWidth = 2 * (radius + padding);
     let containerHeight = 2 * (radius + padding);
-
-    //circleContainer.selectAll("*").remove(); 
 
     let svg = circleContainer.append("svg")
         .attr("width", containerWidth)
@@ -134,7 +140,18 @@ function renderCircle() {
         event.preventDefault();
         let src = event.dataTransfer.getData('text/plain');
         let draggedVideo = document.querySelector(`video[data-src='${src}']`);
-        if (draggedVideo) {
+        let existingForeignObject = d3.select(`foreignObject video[src='${draggedVideo.src}']`).node()?.parentElement;
+
+        if (draggedVideo && existingForeignObject) {
+            // Update the position of the existing video
+            let x = event.offsetX - 25;
+            let y = event.offsetY - 25;
+
+            d3.select(existingForeignObject)
+                .attr("x", x)
+                .attr("y", y);
+        } else if (draggedVideo) {
+            // Create new video element if not already existing
             let x = event.offsetX - 25;
             let y = event.offsetY - 25;
 
@@ -163,11 +180,13 @@ function renderCircle() {
                 ).node();
 
             foreignObject.appendChild(video);
-            draggedVideo.remove();
-            updateCoordinatesBlock();
         }
+        
+        draggedVideo.remove();
+        updateCoordinatesBlock();
     });
 }
+
 
 
 function updateCoordinatesBlock() {
@@ -230,41 +249,50 @@ function setCoordinatesForVideo(src, x, y) {
 
 function placeSavedVideos(savedData) {
     let svg = d3.select("svg");
-    // svg.selectAll("*").remove(); // Clear previous content
+    
+    // Clear previous foreignObjects to avoid duplication
+    svg.selectAll("foreignObject").remove();
 
     savedData.locations.forEach(location => {
-        let video = document.createElementNS("http://www.w3.org/1999/xhtml", "video");
-        video.src = location.src;
-        video.width = 50;
-        video.controls = true;
-        video.draggable = true;
-        video.autoplay = true;
-        video.loop = true;
-        video.dataset.src = location.src;
-        video.addEventListener('dragstart', handleDragStart);
-        video.addEventListener('click', handleVideoClick);
+        // Check if the video is already present in the SVG
+        let existingVideo = d3.select(`foreignObject video[src='${location.src}']`).node();
 
-        let foreignObject = svg.append("foreignObject")
-            .attr("x", location.initial_x - 25)  // Adjust the position based on video dimensions
-            .attr("y", location.initial_y - 25)  // Adjust the position based on video dimensions
-            .attr("width", 50)
-            .attr("height", 50)
-            .call(d3.drag()
-                .on("drag", function (event) {
-                    d3.select(this)
-                        .attr("x", event.x - 25)
-                        .attr("y", event.y - 25);
-                })
-            ).node();
+        if (!existingVideo) {
+            let video = document.createElementNS("http://www.w3.org/1999/xhtml", "video");
+            video.src = location.src;
+            video.width = 50;
+            video.controls = true;
+            video.draggable = true;
+            video.autoplay = true;
+            video.loop = true;
+            video.dataset.src = location.src;
+            video.addEventListener('dragstart', handleDragStart);
+            video.addEventListener('click', handleVideoClick);
 
-        foreignObject.appendChild(video);
+            let foreignObject = svg.append("foreignObject")
+                .attr("x", location.initial_x - 25)  // Adjust the position based on video dimensions
+                .attr("y", location.initial_y - 25)  // Adjust the position based on video dimensions
+                .attr("width", 50)
+                .attr("height", 50)
+                .call(d3.drag()
+                    .on("drag", function (event) {
+                        d3.select(this)
+                            .attr("x", event.x - 25)
+                            .attr("y", event.y - 25);
+                    })
+                ).node();
+
+            foreignObject.appendChild(video);
+        }
     });
 
     if (savedData.locations.length > 0) {
         document.getElementById('question').innerText = savedData.locations[0].question;
     }
+
     updateCoordinatesBlock();
 }
+
 
 function loadSavedLocationsFromDatabase() {
     fetch('/load_admin_locations')
