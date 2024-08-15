@@ -1,1 +1,9 @@
+python setup_db.py
+
+python add_user.py <username> <password> <isAdmin>
+e.g. test test false
+
 waitress-serve --listen=0.0.0.0:80 app:app
+
+
+
