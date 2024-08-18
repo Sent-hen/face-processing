@@ -251,7 +251,7 @@ function placeSavedVideos(savedData) {
     let svg = d3.select("svg");
     
     // Clear previous foreignObjects to avoid duplication
-    svg.selectAll("foreignObject").remove();
+    //svg.selectAll("foreignObject").remove();
 
     savedData.locations.forEach(location => {
         // Check if the video is already present in the SVG
