@@ -103,28 +103,6 @@ html {
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     <script>
-        function renderCircle() {
-            let circleContainer = d3.select("#circleContainer");
-            let radius = 250;
-            let centerX = radius + 50;
-            let centerY = radius + 50;
-            let containerWidth = 2 * (radius + 10) + 100;
-            let containerHeight = 2 * (radius + 10) + 100;
-
-            circleContainer.selectAll("*").remove();
-
-            let svg = circleContainer.append("svg")
-                .attr("width", containerWidth)
-                .attr("height", containerHeight);
-
-            svg.append("circle")
-                .attr("cx", centerX)
-                .attr("cy", centerY)
-                .attr("r", radius)
-                .style("fill", "none")
-                .style("stroke", "#000");
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
             renderCircle();
             loadSavedLocationsFromDatabase();

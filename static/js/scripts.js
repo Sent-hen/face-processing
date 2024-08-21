@@ -140,10 +140,10 @@ function renderCircle() {
         event.preventDefault();
         let src = event.dataTransfer.getData('text/plain');
         let draggedVideo = document.querySelector(`video[data-src='${src}']`);
-        let existingForeignObject = d3.select(`foreignObject video[src='${draggedVideo.src}']`).node()?.parentElement;
+        let existingForeignObject = d3.select(`foreignObject video[data-src='${draggedVideo.dataset.src}']`).node()?.parentElement;
 
         if (draggedVideo && existingForeignObject) {
-            // Update the position of the existing video
+            // If the video is already in the circle, update its position
             let x = event.offsetX - 25;
             let y = event.offsetY - 25;
 
@@ -151,7 +151,7 @@ function renderCircle() {
                 .attr("x", x)
                 .attr("y", y);
         } else if (draggedVideo) {
-            // Create new video element if not already existing
+            // Otherwise, add it to the circle
             let x = event.offsetX - 25;
             let y = event.offsetY - 25;
 
@@ -181,11 +181,10 @@ function renderCircle() {
 
             foreignObject.appendChild(video);
         }
-        
-        draggedVideo.remove();
         updateCoordinatesBlock();
     });
 }
+
 
 
 
