@@ -143,5 +143,40 @@ html {
             loadSavedLocationsFromDatabase();
         });
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Capture initial timestamp on page load
+            window.initialTimestamp = new Date().toISOString();
+            renderCircle();
+            loadSavedLocationsFromDatabase();
+        });
+    
+        document.getElementById('saveFinalLocations').addEventListener('click', function() {
+            // Capture final timestamp when the button is clicked
+            const finalTimestamp = new Date().toISOString();
+            
+            const locationData = {
+                locations: getLocationsData(), // This function should return the current location data
+                question: document.getElementById('question').textContent,
+                initialTimestamp: window.initialTimestamp, // Include the initial timestamp
+                finalTimestamp: finalTimestamp // Include the final timestamp
+            };
+    
+            fetch('/save_user_locations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(locationData)
+            }).then(response => response.json())
+              .then(data => {
+                  // Handle the response
+                  console.log(data);
+                  window.location.href = '/end';
+              });
+        });
+    </script>
+    
+    
 </body>
 </html>
