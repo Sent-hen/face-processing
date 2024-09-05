@@ -3,8 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from dotenv import load_dotenv
-from datetime import datetime
-
 
 # Load environment variables from .env file
 load_dotenv()
@@ -51,8 +49,6 @@ class UserLocation(db.Model):
     final_y = db.Column(db.Float)
     src = db.Column(db.String(200))
     question = db.Column(db.String(300))
-    initial_timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    end_timestamp = db.Column(db.DateTime)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 @app.route('/')
@@ -186,16 +182,13 @@ def save_user_locations():
             final_y=loc.get('final_y'),
             src=loc['src'],
             question=question,
-            user_id=user_id,
-            end_timestamp=datetime.utcnow()  # Set the end timestamp when the location is saved
+            user_id=user_id
         )
         db.session.add(location)
     db.session.commit()
 
     # Redirect to the end.html page after saving the data
     return redirect(url_for('end'))
-
-
 
 @app.route('/end')
 def end():
@@ -222,28 +215,8 @@ def load_user_locations():
     
     user_id = session['user_id']
     locations = UserLocation.query.filter_by(user_id=user_id).all()
-    
-    # Check if any locations do not have an initial timestamp and set it
-    for loc in locations:
-        if loc.initial_timestamp is None:
-            loc.initial_timestamp = datetime.utcnow()
-    
-    db.session.commit()  # Commit changes to set initial timestamps
-    
-    # Build response data
-    loc_data = [
-        {
-            'final_x': loc.final_x,
-            'final_y': loc.final_y,
-            'src': loc.src,
-            'initial_timestamp': loc.initial_timestamp.isoformat() if loc.initial_timestamp else None,
-            'end_timestamp': loc.end_timestamp.isoformat() if loc.end_timestamp else None
-        } 
-        for loc in locations
-    ]
-    
+    loc_data = [{'final_x': loc.final_x, 'final_y': loc.final_y, 'src': loc.src} for loc in locations]
     return jsonify({'locations': loc_data})
-
 
 if __name__ == '__main__':
     app.run(debug=True)
