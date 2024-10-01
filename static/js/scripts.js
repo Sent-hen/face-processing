@@ -309,6 +309,42 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the sources of all videos currently displayed
+    let videoSources = [];
+    d3.selectAll('foreignObject').each(function() {
+        videoSources.push(d3.select(this).attr('data-src')); // Assuming 'data-src' holds the video URL or identifier
+    });
+
+    // Send a request to set start_time for all videos
+    fetch('/set_start_time', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ videos: videoSources })
+    });
+});
+
+document.getElementById('saveFinalLocations').addEventListener('click', function() {
+    let videoSources = [];
+    d3.selectAll('foreignObject').each(function() {
+        videoSources.push(d3.select(this).attr('data-src')); // Assuming 'data-src' holds the video identifier
+    });
+
+    // Send the sources to save the end time
+    fetch('/save_end_time', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ videos: videoSources })
+    }).then(response => response.json())
+      .then(data => console.log(data.message));
+});
+
+
+
 document.addEventListener('DOMContentLoaded', function () {
 
     checkClipsInCircle();
@@ -329,38 +365,36 @@ function checkClipsInCircle() {
     const notification = document.getElementById('notification');
     const saveButton = document.getElementById('saveFinalLocations');
 
-    // Call function to check if all clips are within the circle
     if (!areClipsWithinCircle()) {
         notification.textContent = 'One or more clips are outside the circle. Please move them into the circle.';
         saveButton.disabled = true; 
     } else {
-        notification.textContent = '';  // Clear the notification if all clips are valid
-        saveButton.disabled = false;   // Enable the save button
+        notification.textContent = '';  
+        saveButton.disabled = false;  
     }
 }
 
 function areClipsWithinCircle() {
-    let centerX = 300; // Circle's center X coordinate
-    let centerY = 300; // Circle's center Y coordinate
-    let radius = 250;  // Circle's radius
-    let isValid = true; // This flag will be set to false if any clip is outside the circle
+    let centerX = 300; 
+    let centerY = 300; 
+    let radius = 250;  
+    let isValid = true;
 
-    // Iterate through all 'foreignObject' elements (where videos are placed)
     d3.selectAll("foreignObject").each(function () {
-        let bbox = this.getBBox(); // Get the bounding box of the clip
-        let clipCenterX = bbox.x + (bbox.width / 2); // Calculate clip's center X
-        let clipCenterY = bbox.y + (bbox.height / 2); // Calculate clip's center Y
+        let bbox = this.getBBox(); 
+        let clipCenterX = bbox.x + (bbox.width / 2);
+        let clipCenterY = bbox.y + (bbox.height / 2); 
 
-        // Calculate the distance between the clip's center and the circle's center
+
         let distance = Math.sqrt(Math.pow(clipCenterX - centerX, 2) + Math.pow(clipCenterY - centerY, 2));
 
-        // If the distance exceeds the radius, the clip is outside the circle
+ 
         if (distance > radius) {
-            isValid = false; // Mark as invalid if any clip is outside
+            isValid = false; 
         }
     });
 
-    return isValid; // Return the validity status of all clips
+    return isValid; 
 }
 
 

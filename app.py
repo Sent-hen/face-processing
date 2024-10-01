@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 # Load environment variables from .env file
 load_dotenv()
@@ -49,6 +50,8 @@ class UserLocation(db.Model):
     final_y = db.Column(db.Float)
     src = db.Column(db.String(200))
     question = db.Column(db.String(300))
+    start_time = db.Column(db.DateTime) 
+    end_time = db.Column(db.DateTime)  
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 @app.route('/')
@@ -134,7 +137,7 @@ def upload():
         file.save(file_path)
         file_names.append(filename)
 
-    print('Uploaded files:', file_names)  # Debugging line
+    print('Uploaded files:', file_names) 
     return jsonify({'message': 'Files uploaded successfully', 'files': file_names})
 
 
@@ -148,22 +151,68 @@ def save_admin_locations():
         return redirect(url_for('login'))
     
     data = request.get_json()
-    print('Received data:', data)  # Add this line to check received data
+    print('Received data:', data) 
     admin_id = session['user_id']
     
-    question = data.get('question')  # Get the question from the root level
+    question = data.get('question') 
 
     for loc in data['locations']:
         location = AdminLocation(
             initial_x=loc.get('initial_x'),
             initial_y=loc.get('initial_y'),
             src=loc.get('src'),
-            question=question,  # Use the question from the root level
+            question=question,
             admin_id=admin_id
         )
         db.session.add(location)
     db.session.commit()
     return jsonify({'message': 'Admin locations saved successfully'})
+
+
+@app.route('/set_start_time', methods=['POST'])
+def set_start_time():
+    if 'user_id' not in session:
+        return jsonify({'message': 'User not logged in'}), 401
+
+    data = request.get_json()
+    user_id = session['user_id']
+
+    # Get video sources from the request data
+    video_sources = data.get('videos', [])
+
+    # Create a UserLocation entry for each video with the initial start_time
+    for src in video_sources:
+        user_location = UserLocation(
+            src=src,
+            start_time=datetime.utcnow(),
+            user_id=user_id
+        )
+        db.session.add(user_location)
+
+    db.session.commit()
+
+    return jsonify({'message': 'Start time recorded for all videos'})
+
+@app.route('/save_end_time', methods=['POST'])
+def save_end_time():
+    if 'user_id' not in session:
+        return jsonify({'message': 'User not logged in'}), 401
+
+    data = request.get_json()
+    user_id = session['user_id']
+
+    video_sources = data.get('videos', [])
+
+    # Update the end_time for each video
+    for src in video_sources:
+        location = UserLocation.query.filter_by(user_id=user_id, src=src).first()
+        if location:
+            location.end_time = datetime.utcnow()  # Set the current time as end_time
+
+    db.session.commit()
+
+    return jsonify({'message': 'End time recorded for all videos'})
+
 
 @app.route('/save_user_locations', methods=['POST'])
 def save_user_locations():
@@ -187,7 +236,6 @@ def save_user_locations():
         db.session.add(location)
     db.session.commit()
 
-    # Redirect to the end.html page after saving the data
     return redirect(url_for('end'))
 
 @app.route('/end')
