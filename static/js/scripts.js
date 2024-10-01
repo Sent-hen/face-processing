@@ -293,6 +293,78 @@ function placeSavedVideos(savedData) {
 }
 
 
+document.addEventListener('DOMContentLoaded', function () {
+    // Run initial check on load
+    checkClipsInCircle();
+
+    // Set up an observer to monitor for changes (like drag events)
+    const observer = new MutationObserver(() => {
+        checkClipsInCircle();
+    });
+
+    observer.observe(document.getElementById('circleContainer'), {
+        childList: true,
+        subtree: true,
+        attributes: true
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    checkClipsInCircle();
+
+    // Set up an observer to monitor for changes (like drag events)
+    const observer = new MutationObserver(() => {
+        checkClipsInCircle();
+    });
+
+    observer.observe(document.getElementById('circleContainer'), {
+        childList: true,
+        subtree: true,
+        attributes: true
+    });
+});
+
+function checkClipsInCircle() {
+    const notification = document.getElementById('notification');
+    const saveButton = document.getElementById('saveFinalLocations');
+
+    // Call function to check if all clips are within the circle
+    if (!areClipsWithinCircle()) {
+        notification.textContent = 'One or more clips are outside the circle. Please move them into the circle.';
+        saveButton.disabled = true; 
+    } else {
+        notification.textContent = '';  // Clear the notification if all clips are valid
+        saveButton.disabled = false;   // Enable the save button
+    }
+}
+
+function areClipsWithinCircle() {
+    let centerX = 300; // Circle's center X coordinate
+    let centerY = 300; // Circle's center Y coordinate
+    let radius = 250;  // Circle's radius
+    let isValid = true; // This flag will be set to false if any clip is outside the circle
+
+    // Iterate through all 'foreignObject' elements (where videos are placed)
+    d3.selectAll("foreignObject").each(function () {
+        let bbox = this.getBBox(); // Get the bounding box of the clip
+        let clipCenterX = bbox.x + (bbox.width / 2); // Calculate clip's center X
+        let clipCenterY = bbox.y + (bbox.height / 2); // Calculate clip's center Y
+
+        // Calculate the distance between the clip's center and the circle's center
+        let distance = Math.sqrt(Math.pow(clipCenterX - centerX, 2) + Math.pow(clipCenterY - centerY, 2));
+
+        // If the distance exceeds the radius, the clip is outside the circle
+        if (distance > radius) {
+            isValid = false; // Mark as invalid if any clip is outside
+        }
+    });
+
+    return isValid; // Return the validity status of all clips
+}
+
+
+
 function loadSavedLocationsFromDatabase() {
     fetch('/load_admin_locations')
         .then(response => response.json())
