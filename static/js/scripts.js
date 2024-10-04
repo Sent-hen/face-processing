@@ -246,12 +246,50 @@ function setCoordinatesForVideo(src, x, y) {
     });
 }
 
+// Handle hover events for video playback and scaling
+const videos = document.querySelectorAll('.video-thumbnail');
+
+videos.forEach(video => {
+  // Play video when hovered and set it to loop
+  video.addEventListener('mouseenter', () => {
+    video.play();
+    video.loop = true; // Ensure looping on hover
+  });
+
+  // Pause video when mouse leaves
+  video.addEventListener('mouseleave', () => {
+    video.pause();
+  });
+
+  // Toggle play/pause on click
+  video.addEventListener('click', () => {
+    if (video.paused) {
+      video.play();
+    } else {
+      video.pause();
+    }
+  });
+});
+
+document.querySelectorAll('.foreignObject').forEach(video => {
+    video.addEventListener('mousemove', function (event) {
+        // Get bounding box of the video element
+        const rect = video.getBoundingClientRect();
+        
+        // Calculate the mouse position relative to the video element
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        
+        // Set the transform-origin based on the mouse position
+        video.style.transformOrigin = `${x}px ${y}px`;
+    });
+});
+
+
+
 function placeSavedVideos(savedData) {
     let svg = d3.select("svg");
     
-    // Clear previous foreignObjects to avoid duplication
-    //svg.selectAll("foreignObject").remove();
-
     savedData.locations.forEach(location => {
         // Check if the video is already present in the SVG
         let existingVideo = d3.select(`foreignObject video[src='${location.src}']`).node();
@@ -259,19 +297,20 @@ function placeSavedVideos(savedData) {
         if (!existingVideo) {
             let video = document.createElementNS("http://www.w3.org/1999/xhtml", "video");
             video.src = location.src;
-            video.width = 50;
+            video.width = 100;
             video.controls = true;
             video.draggable = true;
             video.autoplay = true;
             video.loop = true;
+            // video.classList.add('video-thumbnail'); // Add the class for styling
             video.dataset.src = location.src;
             video.addEventListener('dragstart', handleDragStart);
             video.addEventListener('click', handleVideoClick);
 
             let foreignObject = svg.append("foreignObject")
-                .attr("x", location.initial_x - 25)  // Adjust the position based on video dimensions
-                .attr("y", location.initial_y - 25)  // Adjust the position based on video dimensions
-                .attr("width", 50)
+                .attr("x", location.initial_x - 25)
+                .attr("y", location.initial_y - 25)
+                .attr("width", 100)
                 .attr("height", 50)
                 .call(d3.drag()
                     .on("drag", function (event) {
@@ -291,6 +330,7 @@ function placeSavedVideos(savedData) {
 
     updateCoordinatesBlock();
 }
+
 
 
 document.addEventListener('DOMContentLoaded', function () {
