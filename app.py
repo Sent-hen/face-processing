@@ -117,9 +117,20 @@ def demographics():
         db.session.commit()
 
         session['demographics_completed'] = True
-        return redirect(url_for('user'))
+        return redirect(url_for('instructions'))
     
     return render_template('demographics.html')
+
+@app.route('/instructions', methods=['GET', 'POST'])
+def instructions():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        return redirect(url_for('user'))
+
+    return render_template('instructions.html')
+
 
 @app.route('/upload', methods=['POST'])
 def upload():

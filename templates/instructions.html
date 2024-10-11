@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructions</title>
+</head>
+<body>
+    <div id="instructions">
+        <fieldset>
+            <legend><h1>Instructions</h1></legend>
+            <div>
+                You will be shown sets of images on the screen.
+                Each image is a cropped screenshot from a video clip.
+                The images represent their corresponding clips.
+                All of the images start outside of the circle.
+                You should move the images around inside the circle so that clips that are similar to each other in terms of the facial appearance of the main character are close.
+                The more similar the two clips are in terms of facial appearance, the closer the images should be.
+            </div>
+            <ul>
+                <li>Hover the mouse above each image for the first time to show the corresponding clip.</li>
+                <li>Right-click an image to play the corresponding clip. Click a clip to close it.</li>
+                <li>Click an image to choose it. Click an empty space to move a chosen image there.</li>
+            </ul>
+            <div>
+                When you're finished, make sure all the images are inside the circle, then click 'Continue' to finalize your arrangement.
+            </div>
+            <div>
+                The experiment has 4 trials in total.
+                The first trial is a practice trial with 3 clips, which are one dog and two cats, to help you get familiar with the experiment.
+                Each of the other 3 trials approximately has 60 clips of faces and takes 10 minutes.
+            </div>
+        </fieldset>
+        <form method="POST">
+            <button id="instructions_button" class="continue_button">Continue</button>
+        </form>
+    </div>
+</body>
+</html>
